@@ -10,7 +10,7 @@ package org.elasticsearch.action;
 
 import org.elasticsearch.action.DocWriteResponse.Result;
 import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
-import org.elasticsearch.common.RestApiVersion;
+import org.elasticsearch.core.RestApiVersion;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -110,8 +110,7 @@ public class DocWriteResponseTests extends ESTestCase {
         ) {
             // DocWriteResponse is abstract so we have to sneak a subclass in here to test it.
         };
-        try (XContentBuilder builder = JsonXContent.contentBuilder()) {
-            builder.withCompatibleVersion(RestApiVersion.V_7);
+        try (XContentBuilder builder = XContentBuilder.builder(JsonXContent.jsonXContent, RestApiVersion.V_7)) {
             response.toXContent(builder, ToXContent.EMPTY_PARAMS);
 
             try (XContentParser parser = createParser(JsonXContent.jsonXContent, BytesReference.bytes(builder))) {
@@ -119,8 +118,7 @@ public class DocWriteResponseTests extends ESTestCase {
             }
         }
 
-        try (XContentBuilder builder = JsonXContent.contentBuilder()) {
-            builder.withCompatibleVersion(RestApiVersion.V_8);
+        try (XContentBuilder builder = XContentBuilder.builder(JsonXContent.jsonXContent, RestApiVersion.V_8)) {
             response.toXContent(builder, ToXContent.EMPTY_PARAMS);
 
             try (XContentParser parser = createParser(JsonXContent.jsonXContent, BytesReference.bytes(builder))) {
@@ -128,5 +126,4 @@ public class DocWriteResponseTests extends ESTestCase {
             }
         }
     }
-
 }

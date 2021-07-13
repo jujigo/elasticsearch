@@ -12,10 +12,10 @@ import org.apache.http.entity.StringEntity;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
+import org.elasticsearch.core.Tuple;
 import org.elasticsearch.xpack.ql.util.Holder;
 import org.elasticsearch.xpack.sql.qa.rest.BaseRestSqlTestCase;
 import org.elasticsearch.xpack.sql.qa.rest.RestSqlTestCase;
@@ -229,7 +229,9 @@ public abstract class FieldExtractorTestCase extends BaseRestSqlTestCase {
 
         // because "coerce" is true, a "123.456" floating point number STRING should be converted to 123.456 as number
         // and converted to 123.5 for "scaled_float" type
-        expected.put("rows", singletonList(singletonList(isScaledFloat ? 123.5 : 123.456d)));
+        // and 123.4375 for "half_float" because that is all it stores.
+        double expectedNumber = isScaledFloat ? 123.5 : fieldType.equals("half_float") ? 123.4375 : 123.456;
+        expected.put("rows", singletonList(singletonList(expectedNumber)));
         assertResponse(expected, runSql("SELECT " + fieldType + "_field FROM test"));
     }
 

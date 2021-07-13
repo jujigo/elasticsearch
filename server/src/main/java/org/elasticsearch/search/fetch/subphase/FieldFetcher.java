@@ -10,7 +10,7 @@ package org.elasticsearch.search.fetch.subphase;
 
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.util.automaton.CharacterRunAutomaton;
-import org.elasticsearch.common.Nullable;
+import org.elasticsearch.core.Nullable;
 import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.common.regex.Regex;
 import org.elasticsearch.common.xcontent.support.XContentMapValues;
@@ -65,14 +65,15 @@ public class FieldFetcher {
 
         for (FieldAndFormat fieldAndFormat : fieldAndFormats) {
             String fieldPattern = fieldAndFormat.field;
+            boolean isWildcardPattern = Regex.isSimpleMatchPattern(fieldPattern);
             if (fieldAndFormat.includeUnmapped != null && fieldAndFormat.includeUnmapped) {
                 unmappedFetchPattern.add(fieldAndFormat.field);
             }
 
-            Collection<String> concreteFields = context.simpleMatchToIndexNames(fieldPattern);
-            for (String field : concreteFields) {
+            for (String field : context.getMatchingFieldNames(fieldPattern)) {
                 MappedFieldType ft = context.getFieldType(field);
-                if (ft == null || context.isMetadataField(field)) {
+                // we want to skip metadata fields if we have a wildcard pattern
+                if (context.isMetadataField(field) && isWildcardPattern) {
                     continue;
                 }
                 if (field.startsWith(nestedScopePath) == false) {

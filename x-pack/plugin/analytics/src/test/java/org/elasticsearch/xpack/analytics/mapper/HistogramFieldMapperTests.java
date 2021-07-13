@@ -49,6 +49,16 @@ public class HistogramFieldMapperTests extends MapperTestCase {
             m -> assertTrue(((HistogramFieldMapper)m).ignoreMalformed()));
     }
 
+    @Override
+    protected boolean supportsSearchLookup() {
+        return false;
+    }
+
+    @Override
+    protected boolean supportsStoredFields() {
+        return false;
+    }
+
     public void testParseValue() throws Exception {
         DocumentMapper mapper = createDocumentMapper(fieldMapping(this::minimalMapping));
         ParsedDocument doc = mapper.parse(
@@ -299,5 +309,17 @@ public class HistogramFieldMapperTests extends MapperTestCase {
     protected Object generateRandomInputValue(MappedFieldType ft) {
         assumeFalse("Test implemented in a follow up", true);
         return null;
+    }
+
+    public void testCannotBeUsedInMultifields() {
+        Exception e = expectThrows(MapperParsingException.class, () -> createMapperService(fieldMapping(b -> {
+            b.field("type", "keyword");
+            b.startObject("fields");
+            b.startObject("hist");
+            b.field("type", "histogram");
+            b.endObject();
+            b.endObject();
+        })));
+        assertThat(e.getMessage(), containsString("Field [hist] of type [histogram] can't be used in multifields"));
     }
 }

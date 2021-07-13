@@ -11,7 +11,7 @@ an index.
 
 [[index-modules-settings-description]]
 // tag::index-modules-settings-description-tag[]
-Index level settings can be set per-index.  Settings may be:
+Index level settings can be set per-index. Settings may be:
 
 _static_::
 
@@ -50,7 +50,7 @@ NOTE: The number of shards are limited to `1024` per index. This limitation is a
 Number of routing shards used to <<indices-split-index,split>> an index.
 
 For example, a 5 shard index with `number_of_routing_shards` set to `30` (`5 x
-2 x 3`) could be split by a factor of `2` or `3`.  In other words, it could be
+2 x 3`) could be split by a factor of `2` or `3`. In other words, it could be
 split as follows:
 
 * `5` -> `10` -> `30`  (split by 2, then by 3)
@@ -68,19 +68,6 @@ document distribution. See the
 {ref-70}/breaking-changes-7.0.html#_document_distribution_changes[related
 breaking change].
 ====
-
-`index.shard.check_on_startup`::
-
-Whether or not shards should be checked for corruption before opening. When
-corruption is detected, it will prevent the shard from being opened.
-Accepts:
-`false`::: (default) Don't check for corruption when opening a shard.
-`checksum`::: Check for physical corruption.
-`true`::: Check for both physical and logical corruption. This is much more
-expensive in terms of CPU and memory usage.
-+
-WARNING: Expert only. Checking shards may take a lot of time on large
-indices.
 
 [[index-codec]] `index.codec`::
 
@@ -130,6 +117,45 @@ to incomplete history on the leader. Defaults to `12h`.
     per request through the use of the `expand_wildcards` parameter. Possible values are
     `true` and `false` (default).
 
+[[index-shard-check-on-startup]] `index.shard.check_on_startup`::
++
+====
+WARNING: Expert users only. This setting enables some very expensive processing
+at shard startup and is only ever useful while diagnosing a problem in your
+cluster. If you do use it, you should do so only temporarily and remove it
+once it is no longer needed.
+
+{es} automatically performs integrity checks on the contents of shards at
+various points during their lifecycle. For instance, it verifies the checksum
+of every file transferred when recovering a replica or taking a snapshot. It
+also verifies the integrity of many important files when opening a shard, which
+happens when starting up a node and when finishing a shard recovery or
+relocation. You can therefore manually verify the integrity of a whole shard
+while it is running by taking a snapshot of it into a fresh repository or by
+recovering it onto a fresh node.
+
+This setting determines whether {es} performs additional integrity checks while
+opening a shard. If these checks detect corruption then they will prevent the
+shard from being opened. It accepts the following values:
+
+`false`::: Don't perform additional checks for corruption when opening a shard.
+This is the default and recommended behaviour.
+
+`checksum`::: Verify that the checksum of every file in the shard matches its
+contents. This will detect cases where the data read from disk differ from the
+data that {es} originally wrote, for instance due to undetected disk corruption
+or other hardware failures. These checks require reading the entire shard from
+disk which takes substantial time and IO bandwidth and may affect cluster
+performance by evicting important data from your filesystem cache.
+
+`true`::: Performs the same checks as `checksum` and also checks for logical
+inconsistencies in the shard, which could for instance be caused by the data
+being corrupted while it was being written due to faulty RAM or other hardware
+failures. These checks require reading the entire shard from disk which takes
+substantial time and IO bandwidth, and then performing various checks on the
+contents of the shard which take substantial time, CPU and memory.
+====
+
 [discrete]
 [[dynamic-index-settings]]
 === Dynamic index settings
@@ -140,7 +166,7 @@ specific index module:
 [[dynamic-index-number-of-replicas]]
 `index.number_of_replicas`::
 
-    The number of replicas each primary shard has.  Defaults to 1.
+    The number of replicas each primary shard has. Defaults to 1.
 
 `index.auto_expand_replicas`::
 Auto-expand the number of replicas based on the number of data nodes in the
@@ -165,7 +191,7 @@ are ignored for this index.
 `index.refresh_interval`::
 
     How often to perform a refresh operation, which makes recent changes to the
-    index visible to search. Defaults to `1s`.  Can be set to `-1` to disable
+    index visible to search. Defaults to `1s`. Can be set to `-1` to disable
     refresh. If this setting is not explicitly set, shards that haven't seen
     search traffic for at least `index.search.idle.after` seconds will not receive
     background refreshes until they receive a search request. Searches that hit an

@@ -8,11 +8,11 @@
 
 package org.elasticsearch.index.get;
 
-import org.elasticsearch.common.RestApiVersion;
+import org.elasticsearch.core.RestApiVersion;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
-import org.elasticsearch.common.collect.Tuple;
+import org.elasticsearch.core.Tuple;
 import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.common.io.stream.BytesStreamOutput;
 import org.elasticsearch.common.xcontent.ToXContent;
@@ -96,8 +96,7 @@ public class GetResultTests extends ESTestCase {
                 singletonList("value1"))), singletonMap("field1", new DocumentField("metafield",
                 singletonList("metavalue"))));
 
-            try (XContentBuilder builder = JsonXContent.contentBuilder()) {
-                builder.withCompatibleVersion(RestApiVersion.V_7);
+            try (XContentBuilder builder = XContentBuilder.builder(JsonXContent.jsonXContent, RestApiVersion.V_7)) {
                 getResult.toXContent(builder, ToXContent.EMPTY_PARAMS);
                 String output = Strings.toString(builder);
                 assertEquals("{\"_index\":\"index\",\"_type\":\"_doc\",\"_id\":\"id\",\"_version\":1,\"_seq_no\":0,\"_primary_term\":1," +
@@ -108,8 +107,7 @@ public class GetResultTests extends ESTestCase {
         {
             GetResult getResult = new GetResult("index", "id", UNASSIGNED_SEQ_NO, 0, 1, false, null, null, null);
 
-            try (XContentBuilder builder = JsonXContent.contentBuilder()) {
-                builder.withCompatibleVersion(RestApiVersion.V_7);
+            try (XContentBuilder builder = XContentBuilder.builder(JsonXContent.jsonXContent, RestApiVersion.V_7)) {
                 getResult.toXContent(builder, ToXContent.EMPTY_PARAMS);
                 String output = Strings.toString(builder);
                 assertEquals("{\"_index\":\"index\",\"_type\":\"_doc\",\"_id\":\"id\",\"found\":false}", output);
